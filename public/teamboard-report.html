@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>チームプロジェクト管理ツール — 月次課題</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
+    --green: #10b981;
+    --green-light: #d1fae5;
+    --blue: #5b8af5;
+    --blue-light: #dbeafe;
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --rose: #f43f5e;
+    --rose-light: #ffe4e6;
+    --violet: #8b5cf6;
+    --violet-light: #ede9fe;
+    --lime: #c8f135;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 16px 80px;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 56px; }
+  .header-badge {
+    display: inline-block;
+    background: var(--ink);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .15em;
+    padding: 5px 14px;
+    border-radius: 99px;
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-size: clamp(22px, 5vw, 34px);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    margin-bottom: 10px;
+  }
+  .header h1 span { color: var(--green); }
+  .header p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* SECTION */
+  .section { margin-bottom: 60px; animation: fadeUp .5s ease both; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .section:nth-child(1){animation-delay:.05s}
+  .section:nth-child(2){animation-delay:.15s}
+  .section:nth-child(3){animation-delay:.25s}
+  .section:nth-child(4){animation-delay:.35s}
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: clamp(18px, 4vw, 24px);
+    font-weight: 900;
+    margin-bottom: 20px;
+    letter-spacing: -.02em;
+  }
+
+  /* CARD */
+  .card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    margin-bottom: 16px;
+  }
+
+  /* SCREEN MOCK */
+  .screen-mock {
+    background: #0e0f11;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #2a2d35;
+    box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    margin-bottom: 12px;
+  }
+  .mock-header {
+    height: 36px;
+    background: #16181c;
+    border-bottom: 1px solid #2a2d35;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+  }
+  .mock-logo { font-weight: 900; font-size: 12px; color: #c8f135; }
+  .mock-logo span { color: #555870; font-weight: 400; }
+  .mock-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    background: #1e2026;
+    border: 1px solid #2a2d35;
+    color: #555870;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .mock-dots { display:flex; gap:5px; margin-left:auto; }
+  .mock-dot { width:8px; height:8px; border-radius:50%; }
+
+  .mock-body { display: flex; height: 180px; }
+  .mock-pane {
+    border-right: 1px solid #2a2d35;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mock-pane:last-child { border-right: none; flex: 1; }
+  .mock-pane-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #555870;
+    margin-bottom: 2px;
+  }
+  .mock-pane-title { font-size: 10px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px; }
+  .mock-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: default;
+  }
+  .mock-row.active { background: #1e2026; }
+  .mock-dot-s { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .mock-row-text { font-size: 9px; color: #8b8fa8; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mock-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 10px;
+  }
+  .mock-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .mock-footer {
+    display: flex;
+    border-top: 1px solid #2a2d35;
+  }
+  .mock-footer-cell {
+    flex: 1;
+    text-align: center;
+    padding: 5px 0;
+    border-right: 1px solid #2a2d35;
+  }
+  .mock-footer-cell:last-child { border-right: none; }
+  .mock-footer-num { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; }
+  .mock-footer-label { font-family: 'DM Mono', monospace; font-size: 7px; color: #555870; text-transform: uppercase; letter-spacing: 1px; }
+
+  .screen-caption { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+  /* PANE FLOW */
+  .pane-flow {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    margin: 20px 0;
+  }
+  .pane-card {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-right: none;
+    padding: 14px 14px 16px;
+    position: relative;
+  }
+  .pane-card:first-child { border-radius: 10px 0 0 10px; }
+  .pane-card:last-child { border-right: 1.5px solid var(--border); border-radius: 0 10px 10px 0; }
+  .pane-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .pane-name { font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+  .pane-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .pane-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--border);
+    font-size: 18px;
+    padding: 0 2px;
+  }
+
+  /* COMPARISON */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  @media(max-width:500px){ .compare-grid { grid-template-columns:1fr; } }
+  .compare-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .compare-card.bad { border-left: 4px solid var(--rose); }
+  .compare-card.good { border-left: 4px solid var(--green); }
+  .compare-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .compare-label.bad { color: var(--rose); }
+  .compare-label.good { color: var(--green); }
+  .compare-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-bottom: 5px;
+    color: var(--ink);
+  }
+  .compare-item::before {
+    content: '▸';
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 10px;
+  }
+  .compare-card.bad .compare-item::before { color: var(--rose); }
+  .compare-card.good .compare-item::before { color: var(--green); }
+
+  /* POINT BLOCK */
+  .point-block {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .point-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px 11px;
+    border-bottom: 1px solid var(--border);
+  }
+  .point-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: 3px 10px;
+    border-radius: 99px;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .point-title { font-size: 14px; font-weight: 800; }
+  .point-body { padding: 14px 18px 16px; font-size: 13px; color: var(--muted); line-height: 1.75; }
+  .point-body strong { color: var(--ink); font-weight: 700; }
+
+  /* BATTLE CARD */
+  .battle-card {
+    background: var(--ink);
+    border-radius: 12px;
+    padding: 18px 20px;
+    color: #fff;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    margin-bottom: 14px;
+  }
+  .battle-icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+  .battle-title { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .battle-body { font-size: 12.5px; color: #94a3b8; line-height: 1.7; }
+  .battle-body strong { color: #fff; }
+
+  /* FLOW ARROW */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+  }
+  .flow-chip {
+    background: #f1f5f9;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .flow-chip.active {
+    background: var(--green-light);
+    border-color: var(--green);
+    color: #065f46;
+  }
+  .flow-arrow { color: var(--muted); font-size: 14px; }
+
+  /* SUMMARY */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px;
+    margin-top: 48px;
+  }
+  @media(max-width:500px){ .summary { grid-template-columns:1fr; } }
+  .summary-item {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .summary-num { font-size: 28px; font-weight: 900; color: var(--green); line-height:1; }
+  .summary-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+  /* LEARNING BOX */
+  .learning-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .learning-box::before {
+    content: '💡';
+    position: absolute;
+    font-size: 80px;
+    opacity: .07;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .learning-label { font-size: 10px; letter-spacing: .2em; color: #94a3b8; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+  .learning-title { font-size: clamp(16px,3.5vw,22px); font-weight: 900; margin-bottom: 8px; line-height: 1.35; }
+  .learning-title span { color: #c8f135; }
+  .learning-body { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+
+  /* INLINE TAG */
+  .tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    margin: 0 2px;
+  }
+  .tag-green { background: var(--green-light); color: #065f46; }
+  .tag-blue  { background: var(--blue-light);  color: #1e40af; }
+  .tag-amber { background: var(--amber-light); color: #92400e; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">MONTHLY PROJECT / TEAM WORKSPACE</div>
+    <h1>チーム<span>プロジェクト管理</span>ツール</h1>
+    <p>「誰が・何を・いつまでに」を1画面で把握する ── 週1〜2回のミーティングに最適化したワークスペース</p>
+  </div>
+
+  <!-- SECTION 1: SCREEN -->
+  <div class="section">
+    <div class="section-label">SECTION 1</div>
+    <div class="section-title">画面のキャプチャ</div>
+
+    <!-- MOCK SCREEN -->
+    <div class="screen-mock">
+      <div class="mock-header">
+        <div class="mock-logo">Team<span>Board</span></div>
+        <div class="mock-badge">プロジェクト管理</div>
+        <div class="mock-dots">
+          <div class="mock-dot" style="background:#c8f135"></div>
+          <div class="mock-dot" style="background:#5b8af5"></div>
+          <div class="mock-dot" style="background:#f5a623"></div>
+          <div class="mock-dot" style="background:#f56565"></div>
+        </div>
+      </div>
+      <div class="mock-body">
+        <!-- P1 -->
+        <div class="mock-pane" style="width:130px;min-width:130px;">
+          <div class="mock-pane-label">PANE 01</div>
+          <div class="mock-pane-title">プロジェクト</div>
+          <div class="mock-row active">
+            <div class="mock-dot-s" style="background:#5b8af5"></div>
+            <div class="mock-row-text">採用管理刷新</div>
+            <div class="mock-num" style="background:#5b8af5;color:#000;font-size:7px">4</div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-dot-s" style="background:#c8f135"></div>
+            <div class="mock-row-text">ポータルUI改善</div>
+            <div class="mock-num" style="background:#1e2026;color:#555870;border:1px solid #2a2d35;font-size:7px">2</div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-dot-s" style="background:#f5a623"></div>
+            <div class="mock-row-text">データ基盤移行</div>
+            <div class="mock-num" style="background:#1e2026;color:#555870;border:1px solid #2a2d35;font-size:7px">3</div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-dot-s" style="background:#10b981"></div>
+            <div class="mock-row-text">新人育成</div>
+            <div class="mock-num" style="background:#1e2026;color:#555870;border:1px solid #2a2d35;font-size:7px">9</div>
+          </div>
+        </div>
+        <!-- P2 -->
+        <div class="mock-pane" style="width:145px;min-width:145px;">
+          <div class="mock-pane-label">PANE 02</div>
+          <div class="mock-pane-title">タスク一覧</div>
+          <div class="mock-row">
+            <div style="width:10px;height:10px;border-radius:2px;background:#22c55e;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+              <span style="color:#fff;font-size:7px;font-weight:700">✓</span>
+            </div>
+            <div class="mock-row-text" style="text-decoration:line-through;color:#555870">要件定義作成</div>
+          </div>
+          <div class="mock-row active">
+            <div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #2a2d35;flex-shrink:0;"></div>
+            <div class="mock-row-text" style="color:#e8eaf0">ワイヤーフレーム</div>
+            <div class="mock-tag" style="background:rgba(91,138,245,.15);color:#5b8af5">進行中</div>
+          </div>
+          <div class="mock-row">
+            <div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #2a2d35;flex-shrink:0;"></div>
+            <div class="mock-row-text">APIエンドポイント</div>
+            <div class="mock-tag" style="background:rgba(91,138,245,.15);color:#5b8af5">進行中</div>
+          </div>
+          <div class="mock-row">
+            <div style="width:10px;height:10px;border-radius:2px;border:1.5px solid #2a2d35;flex-shrink:0;"></div>
+            <div class="mock-row-text">フロントエンド実装</div>
+            <div class="mock-tag" style="background:rgba(139,143,168,.12);color:#8b8fa8">未着手</div>
+          </div>
+        </div>
+        <!-- P3 -->
+        <div class="mock-pane" style="flex:1;">
+          <div class="mock-pane-label">PANE 03</div>
+          <div class="mock-pane-title">タスク詳細</div>
+          <div style="font-size:8px;color:#555870;margin-bottom:4px">選択中: 画面ワイヤーフレーム作成</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+            <div style="background:#16181c;border-radius:4px;padding:5px 7px;">
+              <div style="font-family:'DM Mono',monospace;font-size:7px;color:#555870;margin-bottom:3px">担当者</div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="width:14px;height:14px;border-radius:50%;background:#5b8af5;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">田</div>
+                <span style="font-size:9px;color:#e8eaf0">田中</span>
+              </div>
+            </div>
+            <div style="background:#16181c;border-radius:4px;padding:5px 7px;">
+              <div style="font-family:'DM Mono',monospace;font-size:7px;color:#555870;margin-bottom:3px">期日</div>
+              <div style="font-size:9px;color:#e8eaf0">6/10</div>
+            </div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:7px;color:#555870;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">ステータス変更</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;">
+            <div style="font-size:7px;padding:2px 6px;border-radius:10px;border:1px solid #2a2d35;color:#555870">未着手</div>
+            <div style="font-size:7px;padding:2px 6px;border-radius:10px;background:rgba(91,138,245,.15);color:#5b8af5;border:1px solid #5b8af5">進行中</div>
+            <div style="font-size:7px;padding:2px 6px;border-radius:10px;border:1px solid #2a2d35;color:#555870">完了</div>
+          </div>
+        </div>
+        <!-- P4 -->
+        <div class="mock-pane" style="width:140px;min-width:140px;border-right:none;">
+          <div class="mock-pane-label">PANE 04</div>
+          <div class="mock-pane-title">メンバー別</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+            <div style="width:16px;height:16px;border-radius:50%;background:#c8f135;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#000">山</div>
+            <span style="font-size:9px;color:#e8eaf0;font-weight:500;flex:1">山田</span>
+            <span style="font-family:'DM Mono',monospace;font-size:8px;color:#555870">3</span>
+          </div>
+          <div style="padding-left:8px;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:4px;padding:2px 0;">
+              <div style="width:4px;height:4px;border-radius:50%;background:#f5a623;flex-shrink:0;"></div>
+              <span style="font-size:8px;color:#8b8fa8">移行計画書の作成</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+            <div style="width:16px;height:16px;border-radius:50%;background:#5b8af5;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff">田</div>
+            <span style="font-size:9px;color:#e8eaf0;font-weight:500;flex:1">田中</span>
+            <span style="font-family:'DM Mono',monospace;font-size:8px;color:#555870">4</span>
+          </div>
+          <div style="padding-left:8px;">
+            <div style="display:flex;align-items:center;gap:4px;padding:2px 0;">
+              <div style="width:4px;height:4px;border-radius:50%;background:#5b8af5;flex-shrink:0;"></div>
+              <span style="font-size:8px;color:#8b8fa8">ワイヤーフレーム</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;padding:2px 0;">
+              <div style="width:4px;height:4px;border-radius:50%;background:#5b8af5;flex-shrink:0;"></div>
+              <span style="font-size:8px;color:#8b8fa8">フロントエンド実装</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-footer">
+        <div class="mock-footer-cell"><div class="mock-footer-num" style="color:#8b8fa8">11</div><div class="mock-footer-label">未着手</div></div>
+        <div class="mock-footer-cell"><div class="mock-footer-num" style="color:#5b8af5">7</div><div class="mock-footer-label">進行中</div></div>
+        <div class="mock-footer-cell"><div class="mock-footer-num" style="color:#48bb78">8</div><div class="mock-footer-label">完了</div></div>
+        <div class="mock-footer-cell"><div class="mock-footer-num" style="color:#f56565">1</div><div class="mock-footer-label">期限切れ</div></div>
+      </div>
+    </div>
+    <p class="screen-caption">起動直後の画面（4ペイン構成のチームプロジェクト管理ワークスペース）</p>
+
+    <!-- PANE FLOW -->
+    <div class="pane-flow" style="margin-top:24px;">
+      <div class="pane-card">
+        <div class="pane-num">PANE 1</div>
+        <div class="pane-name">プロジェクト</div>
+        <div class="pane-desc">何のプロジェクトが動いているか？</div>
+      </div>
+      <div class="pane-arrow">›</div>
+      <div class="pane-card">
+        <div class="pane-num">PANE 2</div>
+        <div class="pane-name">タスク一覧</div>
+        <div class="pane-desc">今週のタスクは誰が何を持っているか？</div>
+      </div>
+      <div class="pane-arrow">›</div>
+      <div class="pane-card">
+        <div class="pane-num">PANE 3</div>
+        <div class="pane-name">タスク詳細</div>
+        <div class="pane-desc">このタスクの担当・期日・ステータスは？</div>
+      </div>
+      <div class="pane-arrow">›</div>
+      <div class="pane-card">
+        <div class="pane-num">PANE 4</div>
+        <div class="pane-name">メンバー別</div>
+        <div class="pane-desc">誰が今どれだけ抱えているか？</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px">左 → 右で「全体 → 個人」へ視線が一方向に流れる</p>
+  </div>
+
+  <!-- SECTION 2: PROBLEM -->
+  <div class="section">
+    <div class="section-label">SECTION 2</div>
+    <div class="section-title">解決する課題</div>
+
+    <div class="card" style="border-left:4px solid var(--green);">
+      <div style="padding:18px 20px;">
+        <div style="font-size:15px;font-weight:800;margin-bottom:10px;">チームミーティングで毎回聞くことを、<br>聞く前に画面で答えが出ている状態にする</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.75;">週1〜2回のミーティングで確認したい「誰が・何を・いつまでに・どの状態か」を、複数のツールを行き来せず1画面で把握できるようにします。</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0;">
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px;letter-spacing:.05em">① 全体を見る</div>
+          <div style="font-size:12.5px;font-weight:700;margin-bottom:5px;">プロジェクト単位で状況把握</div>
+          <div style="font-size:11.5px;color:var(--muted);line-height:1.6;">どのプロジェクトに何件のタスクが残っているかを一瞬で確認</div>
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--amber);">
+        <div style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:6px;letter-spacing:.05em">② タスクを見る</div>
+          <div style="font-size:12.5px;font-weight:700;margin-bottom:5px;">担当・期日・ステータスを確認</div>
+          <div style="font-size:11.5px;color:var(--muted);line-height:1.6;">個別タスクを選ぶと詳細が即座に右に展開される</div>
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <div style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;letter-spacing:.05em">③ 人を見る</div>
+          <div style="font-size:12.5px;font-weight:700;margin-bottom:5px;">メンバーの負荷を把握</div>
+          <div style="font-size:11.5px;color:var(--muted);line-height:1.6;">誰がどれだけのタスクを抱えているかをペイン4で常に確認できる</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: POINTS -->
+  <div class="section">
+    <div class="section-label">SECTION 3</div>
+    <div class="section-title">工夫したポイント</div>
+
+    <div class="point-block" style="--c:var(--blue);">
+      <div class="point-header" style="background:var(--blue-light);">
+        <span class="point-tag" style="background:var(--blue);">工夫①</span>
+        <span class="point-title">ペイン4をコメント欄ではなくメンバー別タスクにした</span>
+      </div>
+      <div class="point-body">
+        grill-meで「<strong>週1〜2回の確認用</strong>」「<strong>3〜5人の小チーム</strong>」という仕様が固まったとき、コメント欄より<strong>「誰が今何を持っているか」を一目で見えること</strong>の方が価値が高いと判断。ペイン4をメンバー別タスク一覧に変更しました。ペイン4のタスクをクリックするとペイン3に詳細が表示されます。
+      </div>
+    </div>
+
+    <div class="point-block">
+      <div class="point-header" style="background:#f8fafc;">
+        <span class="point-tag" style="background:var(--amber);">工夫②</span>
+        <span class="point-title">情報をプロジェクト・タスク・担当者・期日だけに絞った</span>
+      </div>
+      <div class="point-body">
+        最初は「説明文」「サブタスク」「進捗バー」なども入れていましたが、grill-meで<strong>「シンプルに絞る」</strong>という方向が確定。週1〜2回しか開かないツールに細かい入力欄は不要と判断し、4項目だけに絞り込みました。
+      </div>
+    </div>
+
+    <div class="point-block">
+      <div class="point-header" style="background:#f8fafc;">
+        <span class="point-tag" style="background:var(--rose);">工夫③</span>
+        <span class="point-title">期限切れフィルターをペイン2に追加した</span>
+      </div>
+      <div class="point-body">
+        週1〜2回のミーティング前に「<strong>何が遅れているか</strong>」を素早く確認できることが重要。「全て・進行中・未着手」に加えて<strong>「期限切れ」フィルター</strong>を追加することで、問題のあるタスクをワンクリックで絞り込めるようにしました。
+      </div>
+    </div>
+
+    <div class="point-block">
+      <div class="point-header" style="background:#f8fafc;">
+        <span class="point-tag" style="background:var(--green);">工夫④</span>
+        <span class="point-title">下部サマリーバーでチーム全体状況を常時表示</span>
+      </div>
+      <div class="point-body">
+        どのプロジェクトを見ているときでも、<strong>未着手・進行中・完了・期限切れの件数</strong>が画面下部に常に表示されます。ミーティングの冒頭でチーム全体の状況をひと目で報告できます。
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: STRUGGLES -->
+  <div class="section">
+    <div class="section-label">SECTION 4</div>
+    <div class="section-title">苦戦したポイント</div>
+
+    <div class="battle-card">
+      <div class="battle-icon">⚙️</div>
+      <div>
+        <div class="battle-title">苦戦① PowerShellの文字コード問題</div>
+        <div class="battle-body">PowerShellで日本語を含むコードを貼り付けると<strong>ANSI形式で保存</strong>されてしまい、Next.jsが「invalid utf-8 sequence」エラーを出し続けた。解決策は<strong>メモ帳でUTF-8指定して保存</strong>すること。コードよりも環境の落とし穴に時間がかかった。</div>
+      </div>
+    </div>
+
+    <div class="battle-card">
+      <div class="battle-icon">🤔</div>
+      <div>
+        <div class="battle-title">苦戦② grill-meで「全部入れたい」衝動を抑えること</div>
+        <div class="battle-body">コメント欄・サブタスク・進捗バー・通知機能…便利そうな機能を追加したくなる衝動があった。grill-meで「<strong>週1〜2回・3〜5人・情報はシンプルに</strong>」という仕様を先に固めたことで、「これは要らない」と言い切れるようになった。</div>
+      </div>
+    </div>
+
+    <div class="battle-card">
+      <div class="battle-icon">🔄</div>
+      <div>
+        <div class="battle-title">苦戦③ Cursorが使えない状況でNext.jsを立ち上げること</div>
+        <div class="battle-body">Cursorの利用上限に達していたため、<strong>PowerShell + メモ帳だけ</strong>でNext.js + shadcn/uiの環境を構築した。コマンドを1行ずつ確認しながら進めることで、ツールへの依存ではなく<strong>仕組みへの理解</strong>が深まった。</div>
+      </div>
+    </div>
+
+    <div class="learning-box">
+      <div class="learning-label">LEARNING</div>
+      <div class="learning-title">「何を作るか」より<span>「何を作らないか」</span>を先に決める</div>
+      <div class="learning-body">grill-meで仕様を固める前にコードを書き始めると、あとから何度も作り直すことになる。上流で決めきるほど、実装はシンプルになる。</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="summary-item">
+      <div class="summary-num">4</div>
+      <div class="summary-label">ペイン構成</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num" style="font-size:20px;padding-top:4px">Next.js</div>
+      <div class="summary-label">+ shadcn/ui で実装</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num" style="font-size:20px;padding-top:4px">grill</div>
+      <div class="summary-label">で仕様を先に固めた</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
