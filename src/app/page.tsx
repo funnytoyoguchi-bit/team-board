@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const members = [
@@ -20,35 +20,6 @@ const projects = [
 type Status = "todo"|"doing"|"review"|"done";
 type Task = { id:number; pid:number; name:string; status:Status; due:string; mid:string; };
 
-const initialTasks: Task[] = [
-  { id:1,  pid:0, name:"要件定義ドキュメント作成",         status:"done",  due:"2026-05-20", mid:"A" },
-  { id:2,  pid:0, name:"画面ワイヤーフレーム作成",         status:"doing", due:"2026-06-10", mid:"B" },
-  { id:3,  pid:0, name:"APIエンドポイント設計",            status:"doing", due:"2026-06-15", mid:"C" },
-  { id:4,  pid:0, name:"フロントエンド実装",               status:"todo",  due:"2026-06-28", mid:"B" },
-  { id:5,  pid:0, name:"バックエンドAPI実装",              status:"todo",  due:"2026-07-05", mid:"C" },
-  { id:6,  pid:1, name:"ユーザーインタビュー実施",         status:"done",  due:"2026-05-15", mid:"A" },
-  { id:7,  pid:1, name:"UIコンポーネント整備",             status:"doing", due:"2026-06-20", mid:"B" },
-  { id:8,  pid:1, name:"アクセシビリティ対応",             status:"todo",  due:"2026-07-01", mid:"D" },
-  { id:9,  pid:2, name:"現行データ棚卸し",                 status:"doing", due:"2026-06-01", mid:"C" },
-  { id:10, pid:2, name:"移行計画書の作成",                 status:"todo",  due:"2026-06-18", mid:"A" },
-  { id:11, pid:2, name:"移行リハーサル実施",               status:"todo",  due:"2026-07-10", mid:"D" },
-  { id:12, pid:3, name:"集計スクリプト作成",               status:"done",  due:"2026-05-10", mid:"D" },
-  { id:13, pid:3, name:"レポートテンプレート整備",         status:"done",  due:"2026-05-20", mid:"A" },
-  { id:14, pid:4, name:"DAY1：オリエンテーション・会社概要説明",  status:"done",  due:"2026-06-02", mid:"A" },
-  { id:15, pid:4, name:"DAY1：障害の理解（自閉症・知的障害）",   status:"done",  due:"2026-06-02", mid:"A" },
-  { id:16, pid:4, name:"DAY2：食事介助・移動介助の基礎",         status:"done",  due:"2026-06-03", mid:"B" },
-  { id:17, pid:4, name:"DAY2：現場見学",                         status:"done",  due:"2026-06-03", mid:"B" },
-  { id:18, pid:4, name:"DAY3：先輩同行OJT開始",                  status:"doing", due:"2026-06-13", mid:"C" },
-  { id:19, pid:4, name:"DAY3：事業所マニュアル確認・実行",       status:"doing", due:"2026-06-13", mid:"C" },
-  { id:20, pid:4, name:"1ヶ月目：利用者の顔と名前の一致",       status:"doing", due:"2026-07-04", mid:"D" },
-  { id:21, pid:4, name:"1ヶ月目：会社ルール・マニュアルの習得", status:"todo",  due:"2026-07-04", mid:"A" },
-  { id:22, pid:4, name:"1ヶ月後テスト",                          status:"todo",  due:"2026-07-04", mid:"B" },
-  { id:23, pid:4, name:"2-3ヶ月目：利用者との関わり方習得",     status:"todo",  due:"2026-08-29", mid:"C" },
-  { id:24, pid:4, name:"2-3ヶ月目：記録方法の習得",             status:"todo",  due:"2026-08-29", mid:"D" },
-  { id:25, pid:4, name:"2-3ヶ月目：送迎同行・順路の把握",       status:"todo",  due:"2026-08-29", mid:"A" },
-  { id:26, pid:4, name:"3ヶ月後：新人卒業テスト",               status:"todo",  due:"2026-09-04", mid:"B" },
-];
-
 const statusLabel: Record<Status,string> = { todo:"未着手", doing:"進行中", review:"レビュー中", done:"完了" };
 const statusColor: Record<Status,string> = {
   todo:"bg-slate-700 text-slate-300",
@@ -62,10 +33,17 @@ const fmtFull  = (d:string) => { const dt=new Date(d); return `${dt.getFullYear(
 const isOver   = (d:string, s:Status) => new Date(d) < new Date() && s !== "done";
 
 export default function Home() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
   const [pid, setPid] = useState(0);
   const [tid, setTid] = useState<number|null>(null);
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    fetch("/api/tasks")
+      .then(r => r.json())
+      .then(data => { setTasks(data); setLoading(false); });
+  }, []);
 
   const task = tid !== null ? tasks.find(t=>t.id===tid) : null;
   const proj = projects.find(p=>p.id===pid)!;
@@ -78,7 +56,12 @@ export default function Home() {
     return true;
   });
 
-  const changeStatus = (id:number, s:Status) => {
+  const changeStatus = async (id:number, s:Status) => {
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: s }),
+    });
     setTasks(prev => prev.map(t => t.id===id ? {...t, status:s} : t));
   };
 
@@ -86,6 +69,12 @@ export default function Home() {
   const doing = tasks.filter(t=>t.status==="doing").length;
   const done  = tasks.filter(t=>t.status==="done").length;
   const over  = tasks.filter(t=>isOver(t.due,t.status)).length;
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen bg-[#0e0f11] text-[#c8f135] font-mono text-sm">
+      Loading...
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-screen bg-[#0e0f11] text-[#e8eaf0] overflow-hidden">
